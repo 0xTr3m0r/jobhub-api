@@ -1,7 +1,7 @@
-
 import Job from "../models/Job.js";
 import User from "../models/User.js";
 import { ROLES } from "../constants/roles.js";
+import path from "path";
 
 export const applyToJob = async (req, res, next) => {
     try {
@@ -21,15 +21,36 @@ export const applyToJob = async (req, res, next) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        // Check if the user has already applied for this job
-        if (user.appliedJobs.includes(jobId)) {
+       
+        user.appliedJobs = user.appliedJobs.filter(app => app && app.job && app.cv);
+      
+        const alreadyApplied = user.appliedJobs.some(app => app && app.job && app.job.toString() === jobId);
+        if (alreadyApplied) {
             return res.status(400).json({ error: "You have already applied for this job" });
         }
-        // Add the job to the user's applied jobs
-        user.appliedJobs.push(jobId);
+       
+        if (!req.file) {
+            return res.status(400).json({ error: "CV file is required" });
+        }
+       
+        const allowedTypes = ["application/pdf"];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+            return res.status(400).json({ error: "Only PDF files are allowed for CV uploads." });
+        }
+        if (req.file.size > 5 * 1024 * 1024) {
+            return res.status(400).json({ error: "CV file size must be less than 5MB." });
+        }
+        const cvPath = req.file.path;
+        if (!cvPath) {
+            return res.status(500).json({ error: "CV file path is missing. Upload failed." });
+        }
+        
+        user.appliedJobs.push({ job: jobId, cv: cvPath });
         await user.save();
-        res.status(200).json({ message: "Job application successful", job });
+        
+        res.status(200).json({ message: "Job application successful", job, cv: path.basename(cvPath) });
     } catch (error) {
+        console.error('Error in applyToJob:', error); 
         next(error);
     }
 }
@@ -37,7 +58,11 @@ export const applyToJob = async (req, res, next) => {
 export const getAppliedJobs = async (req, res, next) => {
     try {
         const userId = req.user.userId;
-        const user = await User.findById(userId).populate('appliedJobs');
+        // Populate the job field inside each appliedJobs entry
+        const user = await User.findById(userId).populate({
+            path: 'appliedJobs.job',
+            model: 'Job'
+        });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }

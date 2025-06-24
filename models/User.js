@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { type } from "os";
 
 const userSchema = new mongoose.Schema({
     username:{
@@ -19,9 +18,15 @@ const userSchema = new mongoose.Schema({
         enum:['admin','user'],
         default:'user'
     },
-    appliedJobs:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Job'
+    appliedJobs: [{
+        job: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Job'
+        },
+        cv: {
+            type: String,
+            required: true
+        }
     }],
 });
 

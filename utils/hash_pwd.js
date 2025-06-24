@@ -5,6 +5,6 @@ export const hashPassword = async (password) =>{
         const hashedPwd = await bcrypt.hash(password,12);
         return hashedPwd;
     } catch (error) {
-        console.log("Error while hashing pwd : ",hashedPwd);
+        console.log("Error while hashing pwd : ", error);
     }
 };

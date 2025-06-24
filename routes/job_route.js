@@ -2,6 +2,7 @@ import express from 'express';
 import { getAllJobs, createJob, validateJob,deleteJob ,updateJob } from '../controllers/job_controller.js';
 import { applyToJob, getAppliedJobs } from '../controllers/application_controller.js';
 import { protectRoute } from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
 
 const jobRoute = express.Router();
 
@@ -17,7 +18,7 @@ jobRoute.put('/:id', protectRoute, validateJob, updateJob);
 
 
 //Application of the job endoints
-jobRoute.post('/:id/apply',protectRoute,applyToJob);
+jobRoute.post('/:id/apply',protectRoute, upload.single('cv'), applyToJob);
 jobRoute.get('/applied', protectRoute, getAppliedJobs);
 
 
