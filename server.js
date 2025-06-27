@@ -12,6 +12,7 @@ const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth',userRoute);
 app.use('/api/jobs', jobRoute);
 ConnectDB()

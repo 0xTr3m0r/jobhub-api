@@ -17,7 +17,18 @@ export const validateJob = [
 
 export const getAllJobs = async (req,res,next) =>{
     try {
-        const jobs = await Job.find({ isActive: true });
+        const { title, location, type } = req.query;
+        let filter = { isActive: true };
+        if (title) {
+            filter.title = { $regex: title, $options: 'i' };
+        }
+        if (location) {
+            filter.location = { $regex: location, $options: 'i' };
+        }
+        if (type) {
+            filter.type = { $regex: `^${type}$`, $options: 'i' };
+        }
+        const jobs = await Job.find(filter);
         if (!jobs || jobs.length === 0) {
             return res.status(404).json({ message: "No active jobs found" });
         }
