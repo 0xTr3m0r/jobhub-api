@@ -4,15 +4,21 @@ import userRoute from './routes/auth_route.js';
 import cookieParser from 'cookie-parser';
 import { ConnectDB } from './config/db.js';
 import jobRoute from './routes/job_route.js';
+import rateLimit from 'express-rate-limit';
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT;
 
-
+const Limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "Too many requests, please try again later.",
+})
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use(Limiter);
 app.use('/api/auth',userRoute);
 app.use('/api/jobs', jobRoute);
 ConnectDB()

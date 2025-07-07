@@ -2,12 +2,15 @@ import User from "../models/User.js";
 import { hashPassword } from "../utils/hash_pwd.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
-
+import validator from 'validator';
 export const signup = async (req, res, next) => {
     const { username, email, password } = req.body;
     try {
         if (!username || !email || !password) {
             return res.status(400).json({ message: "All fields are required" });
+        }
+        if(!validator.isEmail(email)){
+            return res.status(400).json({error:"Invalid email format"})
         }
         if (password.length < 6) {
             return res.status(400).json({ error: "Password length must be >= 6 " });
@@ -41,9 +44,10 @@ export const login = async (req, res, next) => {
         if (!email || !password) {
             return res.status(400).json({ error: "All fields are required " });
         }
+        
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ error: "User not found" });
+            return res.status(400).json({ error: "Invalid credentials" });
         }
         const verified = await bcrypt.compare(password, user.password);
         if (!verified) {
